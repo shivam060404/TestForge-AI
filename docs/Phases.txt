@@ -1,0 +1,349 @@
+
+---
+
+## 📄 File: `phases.md`
+
+```markdown
+# Strategic Roadmap and Build Phases
+
+This roadmap is designed to produce a **robust working prototype** in a sequence that minimizes risk and maximizes demonstrable value.
+
+---
+
+# Guiding Build Strategy
+
+## Principle
+Build in this order:
+1. **Execution foundation**
+2. **Observability**
+3. **Autonomy**
+4. **Healing**
+5. **Design intelligence**
+6. **Memory and learning**
+7. **Polish and hardening**
+
+Do not start with advanced autonomy before deterministic execution and evidence capture are stable.
+
+---
+
+# Phase 0: Foundation & Repository Setup
+## Goal
+Create the monorepo, infrastructure, and base contracts.
+
+## Deliverables
+- monorepo scaffold
+- Docker Compose setup
+- Postgres + Redis + MinIO
+- FastAPI skeleton
+- Next.js skeleton
+- shared schema package
+- env configuration
+- health checks
+- CI lint/typecheck
+
+## Exit Criteria
+- `docker compose up` boots all services
+- frontend can call backend API
+- database migrations run successfully
+
+---
+
+# Phase 1: Core Data Model & Project Setup
+## Goal
+Establish the system of record.
+
+## Deliverables
+- Project CRUD
+- Environment CRUD
+- Test Case CRUD
+- Test Step CRUD
+- Run model
+- Artifact model
+
+## Backend Work
+- SQLAlchemy models
+- Alembic migrations
+- REST endpoints
+- validation schemas
+
+## Frontend Work
+- project list page
+- project detail page
+- environment settings page
+
+## Exit Criteria
+- user can create project/environment/test case manually
+- entities persist correctly
+
+---
+
+# Phase 2: Deterministic Browser Execution Engine
+## Goal
+Create a reliable execution runtime before adding AI.
+
+## Deliverables
+- Playwright worker
+- run queue
+- step executor
+- screenshot capture
+- DOM snapshot capture
+- console/network logs
+- trace capture
+- run status updates
+
+## Key Engineering Tasks
+- create isolated browser context per run
+- implement step runner with explicit waits
+- persist artifacts to storage
+- emit run events
+
+## Exit Criteria
+- a manually defined test can execute reliably
+- artifacts are stored and retrievable
+- run status transitions are stable
+
+---
+
+# Phase 3: Run Observability UI
+## Goal
+Make execution visible and debuggable.
+
+## Deliverables
+- Run list
+- Run detail page
+- Step timeline
+- Live event stream
+- Screenshot viewer
+- Log viewer
+- Artifact links
+
+## Exit Criteria
+- user can start a run from UI
+- user can observe live progress
+- user can inspect evidence after run
+
+---
+
+# Phase 4: Natural-Language Test Planning
+## Goal
+Enable intent-to-test-step generation.
+
+## Deliverables
+- intent input UI
+- LLM planner service
+- JSON schema step output
+- step preview/editing
+- save generated test case
+
+## Prompt Design
+- input:
+  - user intent
+  - environment URL
+  - known page memory
+- output:
+  - step array
+  - assertions
+  - confidence
+
+## Exit Criteria
+- user can generate editable steps from natural language
+- generated steps can execute successfully in happy-path cases
+
+---
+
+# Phase 5: Assertion & Verification Engine
+## Goal
+Make pass/fail decisions robust and explainable.
+
+## Deliverables
+- deterministic assertion engine:
+  - URL match
+  - visible element
+  - text presence
+  - attribute/state checks
+- verification result model
+- failure reason capture
+
+## Exit Criteria
+- run pass/fail is deterministic and auditable
+- failed assertions produce clear diagnostics
+
+---
+
+# Phase 6: Failure Classification Engine
+## Goal
+Understand why something failed.
+
+## Deliverables
+- classifier service
+- failure categories:
+  - selector drift
+  - timing issue
+  - functional regression
+  - environment issue
+  - visual issue
+  - unknown
+- classification shown in UI
+
+## Exit Criteria
+- common failures are categorized correctly
+- UI displays cause category
+
+---
+
+# Phase 7: Self-Healing MVP
+## Goal
+Implement the first high-value autonomy loop.
+
+## Deliverables
+- locator candidate generator
+- candidate ranking
+- sandbox validation
+- healing candidate persistence
+- approval workflow
+- auto-apply threshold
+- healing event stream
+
+## First Healing Targets
+- broken selectors
+- timeout waits
+
+## Exit Criteria
+- system can recover from a changed button selector
+- healing candidate appears in UI with rationale
+- approved heals are reused in future runs
+
+---
+
+# Phase 8: Design Intelligence MVP
+## Goal
+Add design and accessibility awareness.
+
+## Deliverables
+- visual baseline capture
+- screenshot comparison
+- basic visual diff generation
+- accessibility heuristic checks
+- design insight model
+- design insights UI
+
+## First Checks
+- visual difference from baseline
+- contrast failure
+- missing label
+- broken image
+- overflow/clipping
+
+## Exit Criteria
+- system flags seeded visual regressions
+- UI shows design evidence and severity
+
+---
+
+# Phase 9: Memory & Learning Loop
+## Goal
+Turn successful evidence into reusable knowledge.
+
+## Deliverables
+- locator memory store
+- page memory store
+- failure/healing episode memory
+- vector embeddings
+- retrieval during planning/healing
+- memory browser UI
+
+## Exit Criteria
+- approved heals improve reruns
+- planner uses learned page context
+- memory entries have provenance and confidence
+
+---
+
+# Phase 10: Reporting, Metrics, and Polish
+## Goal
+Make the prototype compelling and usable.
+
+## Deliverables
+- run report page
+- analytics widgets
+- trend charts
+- healing metrics
+- design issue summary
+- empty/loading/error states
+- keyboard accessibility
+
+## Exit Criteria
+- stakeholder demo is smooth
+- system feels coherent and trustworthy
+
+---
+
+# Phase 11: Hardening & Prototype Stabilization
+## Goal
+Make the prototype robust enough for evaluation.
+
+## Deliverables
+- retries/timeouts
+- flake detection
+- prompt sanitization
+- secret redaction
+- structured logs
+- API error handling
+- seed demo data
+- end-to-end demo script
+
+## Exit Criteria
+- repeated demo scenarios pass reliably
+- failures are understandable and recoverable
+
+---
+
+# Suggested Timeline
+
+## 2-Week Sprint Model
+- Week 1: Phases 0–2
+- Week 2: Phases 3–5
+- Week 3: Phases 6–7
+- Week 4: Phases 8–9
+- Week 5: Phases 10–11
+
+## 8-Week Conservative Model
+- Weeks 1–2: foundation + execution engine
+- Weeks 3–4: planning + verification + run UI
+- Weeks 5–6: healing + design intelligence
+- Weeks 7–8: memory + reporting + hardening
+
+---
+
+# Milestone Demos
+
+## Demo 1: Reliable Execution
+- manually authored test runs with artifacts
+
+## Demo 2: Autonomous Authoring
+- natural-language test generated and executed
+
+## Demo 3: Self-Healing
+- changed selector is healed automatically or via approval
+
+## Demo 4: Design Intelligence
+- visual/accessibility regression is detected and explained
+
+## Demo 5: Learning
+- rerun uses memory and succeeds faster/more reliably
+
+---
+
+# Definition of Prototype Success
+
+A robust prototype should demonstrate all of the following:
+
+1. Natural-language test creation works
+2. Browser execution is reliable and observable
+3. Functional assertions are deterministic
+4. Locator failures can be healed
+5. Visual/accessibility issues are detected
+6. Learned memory improves future runs
+7. UI provides transparent explanations
+8. The system can be run locally with Docker
+9. The architecture is modular enough for production evolution

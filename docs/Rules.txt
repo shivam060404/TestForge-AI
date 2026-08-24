@@ -1,0 +1,257 @@
+
+---
+
+## 📄 File: `rules.md`
+
+```markdown
+# Rules and Guardrails
+
+This document defines the engineering, product, and AI governance rules for building and operating the Autonomous QA Agent prototype.
+
+---
+
+# 1. Product Rules
+
+## Rule 1: Evidence is mandatory
+No test result is considered valid unless it has supporting artifacts:
+- screenshot
+- DOM snapshot
+- assertion log
+- trace or network evidence where applicable
+
+## Rule 2: Explainability is mandatory
+Every automated decision must have:
+- reason
+- confidence
+- evidence
+- alternatives where relevant
+
+## Rule 3: Human approval is required for high-risk changes
+The following require approval:
+- assertion weakening
+- business-critical flow changes
+- payment/auth-related healing
+- low-confidence healing
+- memory changes affecting future semantics
+
+## Rule 4: Do not silently change test intent
+Self-healing may repair execution mechanics, but not quietly alter what the test is validating.
+
+---
+
+# 2. Engineering Rules
+
+## Rule 1: Deterministic first
+Use deterministic logic for:
+- assertions
+- state checks
+- artifact storage
+- run state transitions
+
+Use LLMs for:
+- planning
+- semantic interpretation
+- healing suggestions
+- design explanations
+
+## Rule 2: Schema-first AI outputs
+All LLM outputs must be:
+- constrained by JSON schema
+- validated
+- retried on schema failure
+- fallback-handled if invalid
+
+## Rule 3: Isolation of execution
+Each run must execute in an isolated browser context.
+No shared cookies/storage across runs unless explicitly configured.
+
+## Rule 4: Idempotent retries
+Only retry steps that are safe and idempotent.
+Do not retry actions with side effects unless explicitly permitted.
+
+## Rule 5: Artifact immutability
+Run artifacts must not be overwritten.
+New attempts create new artifacts.
+
+## Rule 6: No secrets in prompts/logs
+Secrets must be:
+- stored separately
+- injected at runtime
+- redacted from logs, traces, prompts, and memory
+
+---
+
+# 3. AI Guardrails
+
+## Rule 1: LLM does not decide final truth alone
+LLM output is advisory unless validated by deterministic checks.
+
+## Rule 2: Confidence thresholds govern autonomy
+- high confidence → auto-apply
+- medium confidence → suggest
+- low confidence → require approval or fail safely
+
+## Rule 3: Retrieval before generation
+Before planning or healing:
+- retrieve relevant memory
+- use known app context
+- avoid unnecessary hallucination
+
+## Rule 4: Minimal prompt context
+Send only what is necessary:
+- relevant DOM subtree
+- sanitized step context
+- prior failure summary
+- no credentials or tokens
+
+## Rule 5: Rationale capture
+Every AI-generated recommendation must include:
+- why it was proposed
+- what evidence supports it
+- what alternatives were considered
+
+---
+
+# 4. Self-Healing Rules
+
+## Rule 1: Prefer stable semantic locators
+Locator preference order:
+1. data-testid
+2. accessible role/name
+3. stable aria-label
+4. semantic text match
+5. structural selector
+6. XPath only if necessary
+7. visual/coordinate fallback only as last resort
+
+## Rule 2: Validate before applying
+A healing candidate must be validated in a safe replay before adoption.
+
+## Rule 3: Do not heal through security controls
+Never auto-heal by:
+- bypassing authentication
+- skipping consent
+- disabling validations
+- ignoring security checks
+
+## Rule 4: Limit healing attempts
+Set max healing attempts per step and per run.
+
+## Rule 5: Record all healing attempts
+Even rejected or failed heals must be logged.
+
+---
+
+# 5. Design Intelligence Rules
+
+## Rule 1: Baseline governance
+Only approved baselines are used for production-like comparisons.
+
+## Rule 2: Visual noise control
+Use:
+- thresholds
+- masking
+- viewport normalization
+- theme normalization
+
+## Rule 3: Accessibility findings must be actionable
+Do not just report “a11y issue”.
+Include:
+- affected element
+- severity
+- evidence
+- recommended fix
+
+---
+
+# 6. Memory Rules
+
+## Rule 1: Verified writes only
+Memory entries must be backed by successful evidence or explicit approval.
+
+## Rule 2: Provenance is mandatory
+Every memory entry must reference:
+- source run
+- source action
+- created timestamp
+- approval status if applicable
+
+## Rule 3: Memory is reversible
+Users must be able to archive or roll back learned entries.
+
+## Rule 4: No sensitive data in memory
+Never persist:
+- passwords
+- tokens
+- cookies
+- unmasked PII
+
+---
+
+# 7. Security Rules
+
+## Rule 1: Allowlisted targets only
+The system should only run against approved URLs/environments.
+
+## Rule 2: Least privilege credentials
+Use test accounts with minimum permissions.
+
+## Rule 3: No production destructive actions by default
+Prototype should assume non-production environments unless explicitly configured otherwise.
+
+## Rule 4: Audit everything
+All run actions, approvals, memory writes, and setting changes must be auditable.
+
+---
+
+# 8. QA Process Rules
+
+## Rule 1: Flaky tests are first-class objects
+Flaky tests must be:
+- detected
+- quarantined
+- analyzed
+- not treated as ordinary failures
+
+## Rule 2: Failure classification before repair
+Do not heal before understanding the failure category.
+
+## Rule 3: Regression evidence must be comparable
+Use consistent:
+- viewport
+- theme
+- locale
+- test data
+
+---
+
+# 9. UI Rules
+
+## Rule 1: Never hide uncertainty
+Show confidence and pending approval states clearly.
+
+## Rule 2: Always show evidence
+No silent pass/fail.
+
+## Rule 3: Make next action obvious
+Every failed or pending state should suggest what to do next.
+
+---
+
+# 10. Prototype Quality Gates
+
+## Gate 1: Execution Stability
+- repeated runs of same test produce consistent evidence
+- timeouts/retries behave predictably
+
+## Gate 2: Healing Safety
+- healed tests preserve original intent
+- approvals are enforced correctly
+
+## Gate 3: Design Signal Quality
+- visual checks produce acceptable false-positive rate
+- accessibility findings are meaningful
+
+## Gate 4: Memory Value
+- reruns show measurable improvement from memory
+- memory entries are explainable and governable
