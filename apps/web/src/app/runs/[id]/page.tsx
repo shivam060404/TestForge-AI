@@ -25,6 +25,7 @@ import {
   Code,
   Terminal,
   Download,
+  Image as ImageIcon,
   ChevronDown,
   ChevronUp,
   RotateCcw,
@@ -32,13 +33,12 @@ import {
 } from 'lucide-react';
 import { formatDate, formatDuration, getStatusColor, cn } from '@/lib/utils';
 import { StepExecution, StepStatus, RunStatus } from '@/types';
-import Image from 'next/image';
 
 export default function RunDetailPage() {
   const params = useParams();
   const router = useRouter();
   const runId = params.id as string;
-  const [eventSource, setEventSource] = useRef<EventSource | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<'console' | 'report' | 'healing'>('console');
@@ -49,7 +49,7 @@ export default function RunDetailPage() {
     if (!run) return;
 
     const es = new EventSource(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/runs/${runId}/events`);
-    setEventSource.current = es;
+    eventSourceRef.current = es;
 
     es.onmessage = (event) => {
       try {
@@ -66,7 +66,7 @@ export default function RunDetailPage() {
 
     return () => {
       es.close();
-      setEventSource.current = null;
+      eventSourceRef.current = null;
     };
   }, [runId, run]);
 
@@ -249,7 +249,7 @@ export default function RunDetailPage() {
         </Card>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
         <TabsList>
           <TabsTrigger value="console">Console</TabsTrigger>
           <TabsTrigger value="report">Report</TabsTrigger>
@@ -284,8 +284,8 @@ export default function RunDetailPage() {
                             <div className="flex items-center gap-3">
                               {stepStatusIcons[step.status]}
                               <span className="font-mono text-sm text-muted-foreground">{step.order + 1}</span>
-                              <Badge variant="secondary">{step.action}</Badge>
-                              <span className="flex-1 truncate">{step.description || step.action}</span>
+                              <Badge variant="secondary">{(step as any).action}</Badge>
+                              <span className="flex-1 truncate">{((step as any).description || (step as any).action)}</span>
                               <Badge className={cn(getStatusColor(step.status))}>{step.status}</Badge>
                               {step.duration_ms && <span className="text-sm text-muted-foreground">{formatDuration(step.duration_ms)}</span>}
                             </div>
@@ -306,7 +306,7 @@ export default function RunDetailPage() {
                               <div className="grid gap-2 md:grid-cols-2 text-sm">
                                 {step.screenshot_path && (
                                   <Link href={step.screenshot_path} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
-                                    <Image className="h-4 w-4" /> Screenshot
+                                    <ImageIcon className="h-4 w-4" /> Screenshot
                                   </Link>
                                 )}
                                 {step.dom_snapshot_path && (
@@ -418,14 +418,14 @@ export default function RunDetailPage() {
                         <tr key={step.id} className="border-b">
                           <td className="py-2 pr-4 font-mono">{step.order + 1}</td>
                           <td className="py-2 pr-4">
-                            <Badge variant="secondary">{step.action}</Badge>
-                            {step.description && <span className="ml-2 text-muted-foreground">{step.description}</span>}
+                            <Badge variant="secondary">{(step as any).action}</Badge>
+                            {((step as any).description) && <span className="ml-2 text-muted-foreground">{(step as any).description}</span>}
                           </td>
                           <td className="py-2 pr-4"><Badge className={getStatusColor(step.status)}>{step.status}</Badge></td>
                           <td className="py-2 pr-4">{step.duration_ms ? formatDuration(step.duration_ms) : '-'}</td>
                           <td className="py-2 pr-4">
                             <div className="flex gap-2">
-                              {step.screenshot_path && <Link href={step.screenshot_path} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline"><Image className="h-4 w-4" /></Link>}
+                              {step.screenshot_path && <Link href={step.screenshot_path} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline"><ImageIcon className="h-4 w-4" /></Link>}
                               {step.dom_snapshot_path && <Link href={step.dom_snapshot_path} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline"><Code className="h-4 w-4" /></Link>}
                               {step.trace_path && <Link href={step.trace_path} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline"><Download className="h-4 w-4" /></Link>}
                             </div>
@@ -453,7 +453,7 @@ export default function RunDetailPage() {
                     <div key={step.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <Badge variant="secondary">{step.action}</Badge>
+                          <Badge variant="secondary">{(step as any).action}</Badge>
                           <span className="ml-2 text-sm text-muted-foreground">Step {step.order + 1}</span>
                         </div>
                         <Badge variant="outline" className="text-purple-500 border-purple-500">Healing Candidate</Badge>

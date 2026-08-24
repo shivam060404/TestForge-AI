@@ -65,8 +65,8 @@ export interface UpdateEnvironmentRequest {
 export type LocatorStrategy = 'css' | 'xpath' | 'text' | 'role' | 'testId' | 'id' | 'name' | 'placeholder' | 'label';
 
 export interface Assertion {
-  type: 'visible' | 'hidden' | 'enabled' | 'disabled' | 'text' | 'value' | 'count' | 'url' | 'title';
-  expected: unknown;
+  type?: 'visible' | 'hidden' | 'enabled' | 'disabled' | 'text' | 'value' | 'count' | 'url' | 'title';
+  expected?: unknown;
   operator?: 'equals' | 'contains' | 'matches' | 'greaterThan' | 'lessThan';
 }
 

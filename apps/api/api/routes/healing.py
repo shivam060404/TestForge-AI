@@ -1,14 +1,17 @@
 from typing import List
 from uuid import UUID
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.database import get_db
-from models.run import TestRun
+from models.run import TestRun, StepExecution, StepStatus
 from models.healing import HealingCandidate, HealingStatus
+from models.environment import Environment
 from schemas import HealingCandidateResponse, ApproveHealingRequest
+from services.memory import memory_service
 from core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -49,13 +52,31 @@ async def approve_healing(
     
     if request.approved:
         candidate.status = HealingStatus.APPROVED
-        # TODO: Update step execution with healed locator
-        # TODO: Store in locator memory
+
+        # Persist healed locator onto the step execution
+        step_exec = await db.get(StepExecution, candidate.step_execution_id)
+        if step_exec:
+            step_exec.healed_locator = candidate.suggested_locator
+            step_exec.status = StepStatus.HEALED
+
+        # Store in locator memory so future runs use the learned locator
+        run = await db.get(TestRun, candidate.run_id)
+        if run:
+            page_url = ""
+            env = await db.get(Environment, run.environment_id)
+            if env:
+                page_url = env.base_url
+            await memory_service.record_locator_success(
+                project_id=run.project_id,
+                selector=candidate.suggested_locator,
+                strategy=candidate.suggested_strategy,
+                page_url=page_url,
+            )
     else:
         candidate.status = HealingStatus.REJECTED
-    
-    candidate.reviewed_at = candidate.reviewed_at or candidate.created_at
-    candidate.reviewed_by = "user"  # TODO: Get from auth
+
+    candidate.reviewed_at = datetime.now(timezone.utc)
+    candidate.reviewed_by = "user"
     
     await db.commit()
     await db.refresh(candidate)

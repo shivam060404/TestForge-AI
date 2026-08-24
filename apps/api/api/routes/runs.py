@@ -1,5 +1,5 @@
 from typing import List, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select, func
@@ -109,9 +109,14 @@ async def create_run(
     
     # Create step executions
     for i, step_data in enumerate(test_case.steps):
+        raw_id = step_data.get("id") if isinstance(step_data, dict) else getattr(step_data, "id", None)
+        try:
+            step_uuid = UUID(str(raw_id)) if raw_id else uuid.uuid4()
+        except (ValueError, AttributeError):
+            step_uuid = uuid.uuid4()
         step_exec = StepExecution(
             run_id=run.id,
-            step_id=step_data.get("id") if isinstance(step_data, dict) else getattr(step_data, "id", None),
+            step_id=step_uuid,
             order=i,
             status=StepStatus.PENDING,
         )
@@ -236,9 +241,14 @@ async def retry_run(
     # Create step executions
     test_case = await db.get(TestCase, run.test_case_id)
     for i, step_data in enumerate(test_case.steps):
+        raw_id = step_data.get("id") if isinstance(step_data, dict) else getattr(step_data, "id", None)
+        try:
+            step_uuid = UUID(str(raw_id)) if raw_id else uuid4()
+        except (ValueError, AttributeError):
+            step_uuid = uuid4()
         step_exec = StepExecution(
             run_id=new_run.id,
-            step_id=step_data.get("id") if isinstance(step_data, dict) else getattr(step_data, "id", None),
+            step_id=step_uuid,
             order=i,
             status=StepStatus.PENDING,
         )

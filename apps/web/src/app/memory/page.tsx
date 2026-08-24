@@ -73,7 +73,7 @@ export default function MemoryBrowserPage() {
         types: ['locator', 'episode', 'failure_pattern'],
         limit: 50,
       });
-      setSearchResults(results);
+      setSearchResults(results.data);
     } catch (error) {
       console.error('Search failed', error);
     } finally {
@@ -290,7 +290,7 @@ export default function MemoryBrowserPage() {
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as MemoryType)} className="mb-6">
         <TabsList>
           <TabsTrigger value="locator">
             <Database className="mr-2 h-4 w-4" />

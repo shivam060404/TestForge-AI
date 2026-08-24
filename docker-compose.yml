@@ -62,7 +62,7 @@ services:
       ALLOWED_ORIGINS: "http://localhost:3000"
       LOG_LEVEL: "INFO"
       GROQ_API_KEY: "${GROQ_API_KEY:-}"
-      GROQ_MODEL: "llama-3.1-70b-versatile"
+      GROQ_MODEL: "openai/gpt-oss-120b"
       GROQ_TEMPERATURE: "0.1"
       GROQ_MAX_TOKENS: "4096"
     ports:
@@ -111,7 +111,7 @@ services:
       SECRET_KEY: "dev-secret-key-change-in-production"
       LOG_LEVEL: "INFO"
       GROQ_API_KEY: "${GROQ_API_KEY:-}"
-      GROQ_MODEL: "llama-3.1-70b-versatile"
+      GROQ_MODEL: "openai/gpt-oss-120b"
       GROQ_TEMPERATURE: "0.1"
       GROQ_MAX_TOKENS: "4096"
     volumes:

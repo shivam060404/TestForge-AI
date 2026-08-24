@@ -319,7 +319,7 @@ export default function TestCaseEditorPage() {
                 </div>
                 <div>
                   <Label>Expected Value</Label>
-                  <Input value={newStep.assertion?.expected || ''} onChange={(e) => setNewStep({ ...newStep, assertion: { ...newStep.assertion, expected: e.target.value } })} placeholder="true" />
+                  <Input value={(newStep.assertion?.expected as string) || ''} onChange={(e) => setNewStep({ ...newStep, assertion: { ...newStep.assertion, expected: e.target.value } })} placeholder="true" />
                 </div>
                 <div>
                   <Label>Operator</Label>
@@ -374,7 +374,7 @@ export default function TestCaseEditorPage() {
                         <div className="md:col-span-2">
                           <Label className="text-xs">Target</Label>
                           <Input
-                            size="sm"
+                            className="h-8"
                             value={step.target || ''}
                             onChange={(e) => updateStep(step.id, 'target', e.target.value)}
                             placeholder="/path"
@@ -386,7 +386,7 @@ export default function TestCaseEditorPage() {
                           <div>
                             <Label className="text-xs">Locator</Label>
                             <Input
-                              size="sm"
+                              className="h-8"
                               value={step.locator || ''}
                               onChange={(e) => updateStep(step.id, 'locator', e.target.value)}
                               placeholder="[data-testid=button]"
@@ -407,7 +407,7 @@ export default function TestCaseEditorPage() {
                         <div>
                           <Label className="text-xs">Value</Label>
                           <Input
-                            size="sm"
+                            className="h-8"
                             value={step.value || ''}
                             onChange={(e) => updateStep(step.id, 'value', e.target.value)}
                             placeholder="value"
@@ -431,9 +431,8 @@ export default function TestCaseEditorPage() {
                               </SelectContent>
                             </Select>
                             <Input
-                              size="sm"
-                              className="flex-1 min-w-[150px]"
-                              value={step.assertion.expected || ''}
+                              className="h-8 flex-1 min-w-[150px]"
+                              value={(step.assertion?.expected as string) || ''}
                               onChange={(e) => updateStep(step.id, 'assertion', { ...step.assertion!, expected: e.target.value })}
                               placeholder="expected value"
                             />

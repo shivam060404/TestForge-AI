@@ -21,7 +21,7 @@ class DesignIntelligence:
     """Visual regression and accessibility analysis"""
     
     def __init__(self):
-        self.artifacts_dir = Path(settings.minio_bucket if hasattr(settings, 'minio_bucket') else "/app/artifacts")
+        self.artifacts_dir = Path(settings.artifacts_dir)
         self.visual_threshold = 0.1  # 10% difference threshold
     
     async def analyze_run(self, run_id: uuid.UUID) -> None:

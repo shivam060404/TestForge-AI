@@ -21,7 +21,7 @@ class PlaywrightWorker:
         self.context: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
         self.tracing = False
-        self.artifacts_dir = Path("/app/artifacts")
+        self.artifacts_dir = Path(settings.artifacts_dir)
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
     
     async def initialize(self, headless: bool = True) -> None:

@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -57,7 +58,7 @@ export default function HealingCenterPage() {
   const approveHealing = useApproveHealing();
   const { toast } = useToast();
 
-  const filteredCandidates = healingData?.items.filter(c => !statusFilter || c.status === statusFilter) || [];
+  const filteredCandidates = (healingData || []).filter((c) => !statusFilter || c.status === statusFilter);
 
   const handleReview = (candidate: HealingCandidate) => {
     setSelectedCandidate(candidate);
@@ -136,7 +137,7 @@ export default function HealingCenterPage() {
       <div className="flex items-center gap-4 mb-6">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
             <SelectTrigger className="w-[180px]"><SelectValue placeholder="All statuses" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="">All statuses</SelectItem>
@@ -164,7 +165,7 @@ export default function HealingCenterPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredCandidates.map(candidate => (
+          {filteredCandidates.map((candidate) => (
             <Card key={candidate.id}>
               <CardContent className="py-4">
                 <div className="flex items-start justify-between gap-4">
@@ -207,17 +208,6 @@ export default function HealingCenterPage() {
             </Card>
           ))}
 
-          {healingData && healingData.total_pages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6">
-              <Button variant="outline" onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))} disabled={pagination.page <= 1}>
-                Previous
-              </Button>
-              <span className="text-sm text-muted-foreground">Page {pagination.page} of {healingData.total_pages}</span>
-              <Button variant="outline" onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))} disabled={pagination.page >= healingData.total_pages}>
-                Next
-              </Button>
-            </div>
-          )}
         </div>
       )}
 

@@ -1,8 +1,6 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { getSession, signOut } from 'next-auth/react';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -13,30 +11,12 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 30000,
+      timeout: 120000,
     });
-
-    this.client.interceptors.request.use(
-      async (config: InternalAxiosRequestConfig) => {
-        // Add auth token if available
-        const session = await getSession();
-        if (session?.accessToken) {
-          config.headers.Authorization = `Bearer ${session.accessToken}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
 
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Handle unauthorized
-          if (typeof window !== 'undefined') {
-            await signOut({ callbackUrl: '/login' });
-          }
-        }
         return Promise.reject(error);
       }
     );
@@ -61,8 +41,7 @@ class ApiClient {
   // SSE connection helper
   createEventSource(endpoint: string): EventSource {
     const url = `${API_URL}${endpoint}`;
-    const eventSource = new EventSource(url);
-    return eventSource;
+    return new EventSource(url);
   }
 }
 

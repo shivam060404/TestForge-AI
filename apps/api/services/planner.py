@@ -160,7 +160,10 @@ Schema for each step:
 Intent: {intent}
 {f"Context: {context}" if context else ""}
 
-Return ONLY a JSON array of steps matching the schema. No extra text."""
+Respond with a single JSON object of this exact shape:
+{{"steps": [ {{...step objects matching the schema...}} ]}}
+
+The top level MUST be an object with a "steps" key holding the array. No extra text."""
             
             response = await self.groq_client.chat.completions.create(
                 model=settings.groq_model,

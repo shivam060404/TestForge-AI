@@ -67,7 +67,7 @@ class AccessibilityIssue(Base):
     run_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("test_runs.id", ondelete="CASCADE"), nullable=False)
     step_execution_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("step_executions.id", ondelete="CASCADE"), nullable=False)
     rule_id: Mapped[str] = mapped_column(String(100), nullable=False)
-    impact: Mapped[AccessibilityImpact] = mapped_column(SQLEnum(AccessibilityImpact), nullable=False)
+    impact: Mapped[AccessibilityImpact] = mapped_column(SQLEnum(AccessibilityImpact, values_callable=lambda e: [m.value for m in e]), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     help: Mapped[str | None] = mapped_column(Text, nullable=True)
     html: Mapped[str | None] = mapped_column(Text, nullable=True)

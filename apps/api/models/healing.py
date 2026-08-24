@@ -29,7 +29,7 @@ class HealingCandidate(Base):
     suggested_strategy: Mapped[str] = mapped_column(String(50), nullable=False)
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     reasoning: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[HealingStatus] = mapped_column(SQLEnum(HealingStatus), default=HealingStatus.PENDING, nullable=False)
+    status: Mapped[HealingStatus] = mapped_column(SQLEnum(HealingStatus, values_callable=lambda e: [m.value for m in e]), default=HealingStatus.PENDING, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )
@@ -37,7 +37,9 @@ class HealingCandidate(Base):
     reviewed_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     run: Mapped["TestRun"] = relationship(back_populates="healing_candidates")
-    step_execution: Mapped["StepExecution"] = relationship()
+    step_execution: Mapped["StepExecution"] = relationship(
+        foreign_keys=[step_execution_id]
+    )
 
     __table_args__ = (
         Index("ix_healing_candidates_run_id", "run_id"),

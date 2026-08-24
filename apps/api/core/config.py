@@ -19,9 +19,12 @@ class Settings(BaseSettings):
 
     # Groq LLM
     groq_api_key: str = ""
-    groq_model: str = "llama-3.1-70b-versatile"
+    groq_model: str = "openai/gpt-oss-120b"
     groq_temperature: float = 0.1
     groq_max_tokens: int = 4096
+
+    # Artifact storage root (local filesystem)
+    artifacts_dir: str = "./artifacts"
 
 
 settings = Settings()

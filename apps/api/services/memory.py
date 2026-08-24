@@ -121,28 +121,51 @@ class MemoryService:
         original_locator: str,
         page_url: str,
     ) -> Optional[LocatorMemory]:
-        """Find similar locator from memory"""
+        """Find similar successful locator from memory (URL prefix match)"""
         async with async_session_maker() as db:
-            # Look for successful locators on the same page
+            # Match entries whose stored page_url is a prefix of the current URL
+            # (e.g. stored base_url matches current base_url + path)
             stmt = select(LocatorMemory).where(
                 LocatorMemory.project_id == project_id,
-                LocatorMemory.page_url == page_url,
                 LocatorMemory.success_count > LocatorMemory.failure_count,
+                LocatorMemory.page_url.like(page_url + "%"),
             ).order_by(
                 (LocatorMemory.success_count - LocatorMemory.failure_count).desc()
-            ).limit(5)
+            ).limit(10)
             
             result = await db.execute(stmt)
             memories = result.scalars().all()
             
-            # Simple similarity: check if original locator text is contained in memory
-            for memory in memories:
-                if (original_locator.lower() in memory.selector.lower() or 
-                    memory.selector.lower() in original_locator.lower() or
-                    (memory.element_text and original_locator.lower() in memory.element_text.lower())):
-                    return memory
+            if not memories:
+                return None
             
-            return None
+            orig_lower = original_locator.lower()
+            # Score each candidate for similarity to the original locator
+            best_score = 0
+            best = None
+            for memory in memories:
+                sel_lower = (memory.selector or "").lower()
+                text_lower = (memory.element_text or "").lower()
+                
+                score = 0
+                if orig_lower and (orig_lower in sel_lower or sel_lower in orig_lower):
+                    score += 3
+                if orig_lower and text_lower and (orig_lower in text_lower or text_lower in orig_lower):
+                    score += 2
+                
+                # Extract meaningful tokens from original locator (e.g. "todo-item" from css)
+                for token in ("button", "input", "link", "submit", "login", "search",
+                              "toggle", "filter", "item", "cart", "menu", "field"):
+                    if token in orig_lower and token in sel_lower:
+                        score += 1
+                
+                score += min(memory.success_count / 10.0, 1.0)  # trust bonus
+                
+                if score > best_score:
+                    best_score = score
+                    best = memory
+            
+            return best if best_score >= 2 else None
     
     async def store_episode(
         self,

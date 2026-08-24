@@ -217,7 +217,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <Label htmlFor="healing-strategies">Healing Strategies</Label>
-                  <Select multiple>
+                  <Select>
                     <SelectTrigger><SelectValue placeholder="Select strategies" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="testId">data-testid</SelectItem>
@@ -301,7 +301,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <Label htmlFor="axe-rules">Accessibility Rules</Label>
-                <Select multiple>
+                <Select>
                   <SelectTrigger><SelectValue placeholder="Select rules" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="color-contrast">Color Contrast</SelectItem>

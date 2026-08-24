@@ -55,7 +55,9 @@ async def create_environment(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
-    env = Environment(project_id=project_id, **env_in.model_dump())
+    data = env_in.model_dump()
+    data["base_url"] = str(data["base_url"])
+    env = Environment(project_id=project_id, **data)
     db.add(env)
     await db.commit()
     await db.refresh(env)

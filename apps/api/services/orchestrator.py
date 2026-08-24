@@ -40,7 +40,7 @@ class Orchestrator:
             stmt = (
                 select(TestRun)
                 .options(
-                    selectinload(TestRun.test_case).selectinload(TestCase.steps),
+                    selectinload(TestRun.test_case),
                     selectinload(TestRun.environment),
                     selectinload(TestRun.step_executions),
                 )
@@ -83,7 +83,7 @@ class Orchestrator:
                 stmt = (
                     select(TestRun)
                     .options(
-                        selectinload(TestRun.test_case).selectinload(TestCase.steps),
+                        selectinload(TestRun.test_case),
                         selectinload(TestRun.environment),
                         selectinload(TestRun.step_executions),
                     )
@@ -99,6 +99,7 @@ class Orchestrator:
                     
                     step_result = await self._execute_step(
                         run_id=run_id,
+                        project_id=run.project_id,
                         step_exec=step_exec,
                         step_data=step_data,
                         environment=run.environment,
@@ -124,17 +125,24 @@ class Orchestrator:
             
             # Store episode in memory
             async with async_session_maker() as db:
-                stmt = select(TestRun).where(TestRun.id == run_id)
+                stmt = (
+                    select(TestRun)
+                    .options(selectinload(TestRun.test_case))
+                    .where(TestRun.id == run_id)
+                )
                 result = await db.execute(stmt)
                 run = result.scalar_one()
-                
-                await self.memory.store_episode(
-                    project_id=run.project_id,
-                    intent=run.test_case.description or run.test_case.name,
-                    steps=run.test_case.steps,
-                    outcome=EpisodeOutcome.SUCCESS if final_status == RunStatus.PASSED else EpisodeOutcome.FAILURE,
-                    run_id=run_id,
-                )
+                run_project_id = run.project_id
+                run_intent = run.test_case.description or run.test_case.name
+                run_steps = run.test_case.steps
+
+            await self.memory.store_episode(
+                project_id=run_project_id,
+                intent=run_intent,
+                steps=run_steps,
+                outcome=EpisodeOutcome.SUCCESS if final_status == RunStatus.PASSED else EpisodeOutcome.FAILURE,
+                run_id=run_id,
+            )
             
         except Exception as e:
             logger.error("run_execution_error", run_id=str(run_id), error=str(e))
@@ -145,6 +153,7 @@ class Orchestrator:
     async def _execute_step(
         self,
         run_id: uuid.UUID,
+        project_id: uuid.UUID,
         step_exec: StepExecution,
         step_data: Dict[str, Any],
         environment: Any,
@@ -169,16 +178,34 @@ class Orchestrator:
             strategy = step_data.get("locator_strategy", "css")
             
             if locator:
-                # Try to get healed locator from memory
+                # Prefer learned/healed locator from memory (exact or similar match)
                 memory_entry = await self.memory.get_locator_memory(
-                    project_id=run_id,  # Will be overridden with actual project_id
+                    project_id=project_id,
                     selector=locator,
                     strategy=strategy,
                     page_url=environment.base_url,
                 )
-                if memory_entry and memory_entry.success_count > memory_entry.failure_count:
-                    locator = memory_entry.selector
-                    strategy = memory_entry.strategy
+                exact_is_trusted = (
+                    memory_entry is not None
+                    and memory_entry.success_count > memory_entry.failure_count
+                )
+                if memory_entry is None or not exact_is_trusted:
+                    similar = await self.memory.find_similar_locator(
+                        project_id=project_id,
+                        original_locator=locator,
+                        page_url=environment.base_url + (step_data.get("target") or ""),
+                    )
+                    if similar:
+                        memory_entry = similar
+                if memory_entry and (
+                    getattr(memory_entry, "success_count", 0) > getattr(memory_entry, "failure_count", 0)
+                ):
+                    logger.info("locator_memory_hit",
+                                original=locator,
+                                healed=str(memory_entry.selector))
+                    locator = str(memory_entry.selector)
+                    strategy = str(getattr(memory_entry.strategy, "value", memory_entry.strategy))
+                    step_exec.healed_locator = locator
             
             # Execute step via Playwright
             result = await self.worker.execute_step(
@@ -222,7 +249,7 @@ class Orchestrator:
             # Update locator memory on success
             if locator:
                 await self.memory.record_locator_success(
-                    project_id=run.project_id,
+                    project_id=project_id,
                     selector=locator,
                     strategy=strategy,
                     page_url=environment.base_url,
@@ -255,7 +282,7 @@ class Orchestrator:
             # Update locator memory on failure
             if locator:
                 await self.memory.record_locator_failure(
-                    project_id=run.project_id,
+                    project_id=project_id,
                     selector=locator,
                     strategy=strategy,
                     page_url=environment.base_url,
@@ -266,6 +293,7 @@ class Orchestrator:
                 healing_candidate = await self.healer.generate_candidate(
                     run_id=run_id,
                     step_execution_id=step_exec.id,
+                    project_id=project_id,
                     original_locator=locator or "",
                     original_strategy=strategy,
                     error=str(e),

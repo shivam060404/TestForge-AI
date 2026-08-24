@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
-from sqlalchemy import String, Text, DateTime, ForeignKey, Integer, Enum as SQLEnum, Index
+from sqlalchemy import String, Text, DateTime, ForeignKey, Integer, JSON, Enum as SQLEnum, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.database import Base
 import enum
@@ -39,7 +39,7 @@ class TestRun(Base):
     project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     test_case_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("test_cases.id", ondelete="CASCADE"), nullable=False)
     environment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("environments.id", ondelete="CASCADE"), nullable=False)
-    status: Mapped[RunStatus] = mapped_column(SQLEnum(RunStatus), default=RunStatus.PENDING, nullable=False)
+    status: Mapped[RunStatus] = mapped_column(SQLEnum(RunStatus, values_callable=lambda e: [m.value for m in e]), default=RunStatus.PENDING, nullable=False)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -72,17 +72,18 @@ class StepExecution(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     run_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("test_runs.id", ondelete="CASCADE"), nullable=False)
-    step_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("test_steps.id", ondelete="CASCADE"), nullable=False)
+    # Steps are stored as JSON on test_cases; step_id references the logical step (no FK)
+    step_id: Mapped[uuid.UUID] = mapped_column(nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
-    status: Mapped[StepStatus] = mapped_column(SQLEnum(StepStatus), default=StepStatus.PENDING, nullable=False)
+    status: Mapped[StepStatus] = mapped_column(SQLEnum(StepStatus, values_callable=lambda e: [m.value for m in e]), default=StepStatus.PENDING, nullable=False)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     screenshot_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     dom_snapshot_path: Mapped[str | None] = mapped_column(Text, nullable=True)
-    console_logs: Mapped[list[str]] = mapped_column(default=list, nullable=False)
-    network_logs: Mapped[list[dict]] = mapped_column(default=list, nullable=False)
+    console_logs: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    network_logs: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
     trace_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     healed_locator: Mapped[str | None] = mapped_column(Text, nullable=True)
     healing_candidate_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("healing_candidates.id", ondelete="SET NULL"), nullable=True)

@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, Field, HttpUrl
@@ -56,7 +57,7 @@ class EnvironmentResponse(EnvironmentBase):
 
 
 # Test Step Schemas
-class LocatorStrategy(str):
+class LocatorStrategy(str, Enum):
     CSS = "css"
     XPATH = "xpath"
     TEXT = "text"
@@ -79,7 +80,7 @@ class TestStepBase(BaseModel):
     action: str
     target: Optional[str] = None
     locator: Optional[str] = None
-    locator_strategy: Optional[LocatorStrategy] = None
+    locator_strategy: Optional[str] = None
     value: Optional[str] = None
     options: Dict[str, Any] = {}
     assertion: Optional[AssertionSchema] = None
@@ -96,7 +97,7 @@ class TestStepUpdate(BaseModel):
     action: Optional[str] = None
     target: Optional[str] = None
     locator: Optional[str] = None
-    locator_strategy: Optional[LocatorStrategy] = None
+    locator_strategy: Optional[str] = None
     value: Optional[str] = None
     options: Optional[Dict[str, Any]] = None
     assertion: Optional[AssertionSchema] = None
@@ -120,7 +121,7 @@ class TestCaseBase(BaseModel):
 
 
 class TestCaseCreate(TestCaseBase):
-    pass
+    environment_id: Optional[UUID] = None
 
 
 class TestCaseUpdate(BaseModel):
@@ -128,11 +129,13 @@ class TestCaseUpdate(BaseModel):
     description: Optional[str] = None
     steps: Optional[List[TestStepCreate]] = None
     tags: Optional[List[str]] = None
+    environment_id: Optional[UUID] = None
 
 
 class TestCaseResponse(TestCaseBase):
     id: UUID
     project_id: UUID
+    environment_id: Optional[UUID] = None
     created_at: datetime
     updated_at: datetime
 
@@ -147,7 +150,7 @@ class GenerateTestCaseRequest(BaseModel):
 
 
 # Run Schemas
-class RunStatus(str):
+class RunStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
     PASSED = "passed"
@@ -156,7 +159,7 @@ class RunStatus(str):
     HEALING = "healing"
 
 
-class StepStatus(str):
+class StepStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
     PASSED = "passed"
@@ -225,7 +228,7 @@ class TestRunDetailResponse(TestRunResponse):
 
 
 # Healing Schemas
-class HealingStatus(str):
+class HealingStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -307,7 +310,7 @@ class DesignInsightResponse(BaseModel):
 
 
 # Memory Schemas
-class MemoryType(str):
+class MemoryType(str, Enum):
     LOCATOR = "locator"
     EPISODE = "episode"
     FAILURE_PATTERN = "failure_pattern"
@@ -372,7 +375,7 @@ class SearchMemoryResponse(BaseModel):
 
 
 # SSE Event Schemas
-class SSEEventType(str):
+class SSEEventType(str, Enum):
     RUN_STARTED = "run_started"
     STEP_STARTED = "step_started"
     STEP_COMPLETED = "step_completed"

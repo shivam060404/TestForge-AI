@@ -225,8 +225,8 @@ export default function ProjectsPage() {
             <div className="flex items-center justify-center gap-2">
               <Button
                 variant="outline"
-                onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-                disabled={pagination.page <= 1}
+                onClick={() => setPagination((p) => ({ ...p, page: (p.page ?? 1) - 1 }))}
+                disabled={(pagination.page ?? 1) <= 1}
               >
                 Previous
               </Button>
@@ -235,8 +235,8 @@ export default function ProjectsPage() {
               </span>
               <Button
                 variant="outline"
-                onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-                disabled={pagination.page >= projectsData.total_pages}
+                onClick={() => setPagination((p) => ({ ...p, page: (p.page ?? 1) + 1 }))}
+                disabled={pagination.page !== undefined && pagination.page >= projectsData.total_pages}
               >
                 Next
               </Button>

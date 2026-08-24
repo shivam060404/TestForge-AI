@@ -28,7 +28,7 @@ class LocatorMemory(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     selector: Mapped[str] = mapped_column(Text, nullable=False)
-    strategy: Mapped[LocatorStrategy] = mapped_column(SQLEnum(LocatorStrategy), nullable=False)
+    strategy: Mapped[LocatorStrategy] = mapped_column(SQLEnum(LocatorStrategy, values_callable=lambda e: [m.value for m in e]), nullable=False)
     page_url: Mapped[str] = mapped_column(Text, nullable=False)
     element_role: Mapped[str | None] = mapped_column(String(100), nullable=True)
     element_text: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -60,7 +60,7 @@ class EpisodeMemory(Base):
     project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     intent: Mapped[str] = mapped_column(Text, nullable=False)
     steps: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
-    outcome: Mapped[EpisodeOutcome] = mapped_column(SQLEnum(EpisodeOutcome), nullable=False)
+    outcome: Mapped[EpisodeOutcome] = mapped_column(SQLEnum(EpisodeOutcome, values_callable=lambda e: [m.value for m in e]), nullable=False)
     run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("test_runs.id", ondelete="SET NULL"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False

@@ -54,7 +54,6 @@ export default function DesignInsightsPage() {
   const { data: projectsData } = useProjects({ page_size: 100 });
   const { data: insights, isLoading: insightsLoading } = useDesignInsights(runId);
   const { data: baselinesData, isLoading: baselinesLoading } = useVisualBaselines(projectId);
-  const { toast } = useToast();
 
   const impactColors: Record<string, string> = {
     critical: 'bg-red-100 text-red-800',
@@ -178,7 +177,7 @@ export default function DesignInsightsPage() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Visual Baselines ({baselinesData?.items.length || 0})</CardTitle>
+          <CardTitle>Visual Baselines ({(baselinesData ?? []).length})</CardTitle>
           <Button asChild>
             <Link href="/design/baselines/new">
               <ImageIcon className="mr-2 h-4 w-4" />
@@ -187,7 +186,7 @@ export default function DesignInsightsPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          {baselinesData?.items.length === 0 ? (
+          {(baselinesData ?? []).length === 0 ? (
             <div className="text-center py-12">
               <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-medium">No visual baselines</h3>
@@ -195,7 +194,7 @@ export default function DesignInsightsPage() {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {baselinesData?.items.map(baseline => (
+              {(baselinesData ?? []).map((baseline) => (
                 <Card key={baseline.id}>
                   <CardContent className="pt-4">
                     <div className="aspect-video bg-muted rounded mb-3 relative overflow-hidden">
