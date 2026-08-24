@@ -17,5 +17,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     api_prefix: str = "/api/v1"
 
+    # Groq LLM
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.1-70b-versatile"
+    groq_temperature: float = 0.1
+    groq_max_tokens: int = 4096
+
 
 settings = Settings()

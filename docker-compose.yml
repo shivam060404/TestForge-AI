@@ -61,6 +61,10 @@ services:
       SECRET_KEY: "dev-secret-key-change-in-production"
       ALLOWED_ORIGINS: "http://localhost:3000"
       LOG_LEVEL: "INFO"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      GROQ_MODEL: "llama-3.1-70b-versatile"
+      GROQ_TEMPERATURE: "0.1"
+      GROQ_MAX_TOKENS: "4096"
     ports:
       - "8000:8000"
     volumes:
@@ -106,6 +110,10 @@ services:
       MINIO_USE_SSL: "false"
       SECRET_KEY: "dev-secret-key-change-in-production"
       LOG_LEVEL: "INFO"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      GROQ_MODEL: "llama-3.1-70b-versatile"
+      GROQ_TEMPERATURE: "0.1"
+      GROQ_MAX_TOKENS: "4096"
     volumes:
       - ./apps/api:/app
     depends_on:

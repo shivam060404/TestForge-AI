@@ -4,7 +4,9 @@ import uuid
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
+from groq import AsyncGroq
 from core.logging import get_logger
+from core.config import settings
 from services.memory import memory_service
 
 logger = get_logger(__name__)
@@ -88,6 +90,11 @@ Schema for each step:
                 PlannedStep(3, "assert", locator="[data-testid=search-results]", locator_strategy="testId", assertion={"type": "visible", "expected": True}, description="Verify results displayed"),
             ],
         }
+        
+        # Initialize Groq client if API key is available
+        self.groq_client = None
+        if settings.groq_api_key:
+            self.groq_client = AsyncGroq(api_key=settings.groq_api_key)
     
     async def generate_steps(
         self,
@@ -141,11 +148,62 @@ Schema for each step:
         intent: str,
         context: Optional[str] = None,
     ) -> List[PlannedStep]:
-        """Generate steps using LLM (placeholder implementation)"""
-        # In production, this would call an LLM API
-        # For now, return a generic template
+        """Generate steps using Groq LLM"""
         
-        # This is a simplified template - real implementation would use LLM
+        if not self.groq_client:
+            logger.warning("groq_not_configured", intent=intent[:50])
+            return self._fallback_generate(intent)
+        
+        try:
+            user_prompt = f"""Convert this test intent into structured Playwright test steps:
+
+Intent: {intent}
+{f"Context: {context}" if context else ""}
+
+Return ONLY a JSON array of steps matching the schema. No extra text."""
+            
+            response = await self.groq_client.chat.completions.create(
+                model=settings.groq_model,
+                messages=[
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=settings.groq_temperature,
+                max_tokens=settings.groq_max_tokens,
+                response_format={"type": "json_object"},
+            )
+            
+            content = response.choices[0].message.content
+            data = json.loads(content)
+            
+            # Handle both array and object with "steps" key
+            steps_data = data if isinstance(data, list) else data.get("steps", [])
+            
+            steps = []
+            for i, step_data in enumerate(steps_data):
+                step = PlannedStep(
+                    order=step_data.get("order", i),
+                    action=step_data.get("action", "click"),
+                    target=step_data.get("target"),
+                    locator=step_data.get("locator"),
+                    locator_strategy=step_data.get("locator_strategy"),
+                    value=step_data.get("value"),
+                    options=step_data.get("options", {}),
+                    assertion=step_data.get("assertion"),
+                    description=step_data.get("description"),
+                    continue_on_failure=step_data.get("continue_on_failure", False),
+                )
+                steps.append(step)
+            
+            logger.info("steps_generated_from_groq", intent=intent[:50], step_count=len(steps))
+            return steps
+            
+        except Exception as e:
+            logger.error("groq_generation_failed", error=str(e), intent=intent[:50])
+            return self._fallback_generate(intent)
+    
+    def _fallback_generate(self, intent: str) -> List[PlannedStep]:
+        """Fallback template-based generation when LLM unavailable"""
         steps = [
             PlannedStep(
                 order=0,
@@ -161,7 +219,6 @@ Schema for each step:
             ),
         ]
         
-        # Parse intent for common actions
         intent_lower = intent.lower()
         
         if "click" in intent_lower:
