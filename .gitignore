@@ -1,0 +1,99 @@
+# Operating system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# Editors and IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Python caches and tooling
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.pytype/
+.ruff_cache/
+.pyre/
+.pyright/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+.venv/
+venv/
+env/
+ENV/
+backend/.venv/
+backend/venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Playwright and browser artifacts
+playwright-report/
+blob-report/
+test-results/
+
+# Node.js and frontend build output
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.yarn-cache/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+frontend/coverage/
+.next/
+out/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Logs and runtime output
+*.log
+logs/
+*.pid
+*.pid.lock
+
+# Local databases, uploads, and generated runtime data
+*.db
+*.sqlite
+*.sqlite3
+backend/data/
+backend/uploads/
+backend/storage/
+
+# Docker and local development overrides
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Temporary files
+.tmp/
+tmp/
+temp/
+.cache/

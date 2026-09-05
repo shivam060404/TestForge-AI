@@ -1,0 +1,378 @@
+
+---
+
+## 📄 File: `design.md`
+
+```markdown
+# Design Document: UX / UI / Frontend System
+
+## 1. Design Vision
+
+The frontend should feel like a **QA mission control cockpit**:
+- clear
+- trustworthy
+- explainable
+- evidence-rich
+- developer-friendly
+- low-noise but highly informative
+
+The product must communicate:
+- what the agent did
+- why it did it
+- what failed
+- how it healed
+- what design issues were detected
+- what needs human approval
+
+---
+
+# 2. Information Architecture
+
+## Primary Navigation
+1. Dashboard
+2. Projects
+3. Test Cases
+4. Runs
+5. Healing Center
+6. Design Intelligence
+7. Memory
+8. Settings
+
+---
+
+# 3. Core Screens
+
+## 3.1 Dashboard
+### Purpose
+High-level health of projects and runs.
+
+### Key Widgets
+- total runs
+- pass rate
+- auto-heal rate
+- design issues detected
+- flaky tests
+- recent failures
+- run trend chart
+
+### UX Principles
+- immediate signal over noise
+- click-through to run detail
+
+---
+
+## 3.2 Project Detail
+### Purpose
+Project-level context and configuration.
+
+### Sections
+- environments
+- base URLs
+- test coverage summary
+- latest runs
+- visual baselines
+- memory summary
+
+---
+
+## 3.3 Test Case Editor
+### Purpose
+Create/edit tests from natural language.
+
+### Layout
+- Left panel: intent input + generation controls
+- Right panel: generated step list
+
+### Step Editor Fields
+- action type
+- target description
+- value
+- assertion type
+- expected value
+- learned locator preview
+
+### States
+- empty
+- generating
+- generated
+- editable
+- saved
+- error
+
+---
+
+## 3.4 Run Console
+### Purpose
+Live observability for a running test.
+
+### Layout
+- Header:
+  - test name
+  - status badge
+  - environment
+  - start time
+  - duration
+- Left:
+  - step timeline
+- Center:
+  - live screenshot / trace preview
+- Right:
+  - agent reasoning panel
+  - logs
+  - artifacts
+
+### Live Events
+- step started
+- step succeeded
+- step failed
+- healing attempt
+- design issue detected
+
+### UX Requirements
+- streaming updates
+- auto-scroll logs
+- filter logs by type
+- evidence-first presentation
+
+---
+
+## 3.5 Run Report
+### Purpose
+Post-run analysis and evidence.
+
+### Sections
+- summary
+- failure classification
+- screenshots
+- visual diffs
+- accessibility findings
+- healing history
+- recommendations
+
+### Important UX Patterns
+- collapsible evidence cards
+- before/after image comparison
+- rationale tooltip for AI decisions
+
+---
+
+## 3.6 Healing Center
+### Purpose
+Review and approve/reject healing candidates.
+
+### Candidate Card Should Show
+- old locator / action
+- proposed locator / action
+- confidence score
+- score breakdown
+- screenshot evidence
+- affected test and step
+- validation result
+- approve/reject buttons
+
+### States
+- pending
+- auto-applied
+- approved
+- rejected
+- failed validation
+
+---
+
+## 3.7 Design Intelligence Screen
+### Purpose
+Show visual/accessibility/UX findings.
+
+### Views
+- visual baseline gallery
+- diff viewer
+- issue table
+- severity filters
+- breakpoint switcher
+
+### Issue Card
+- issue type
+- severity
+- screenshot evidence
+- affected component/region
+- recommended action
+
+---
+
+## 3.8 Memory Browser
+### Purpose
+Inspect learned knowledge.
+
+### Tabs
+- locators
+- pages
+- failures
+- visual baselines
+- policies
+
+### Entry Detail
+- content
+- confidence
+- provenance
+- last verified
+- usage count
+- archive action
+
+---
+
+## 3.9 Settings
+### Sections
+- environments
+- secrets
+- healing thresholds
+- auto-approve policy
+- visual thresholds
+- notification stubs
+
+---
+
+# 4. Design System
+
+## Visual Language
+- clean enterprise developer tool aesthetic
+- high readability
+- subtle borders
+- strong status colors
+- dense but not cluttered
+
+## Color Tokens
+- background: neutral light/dark
+- surface: elevated cards
+- primary: indigo/blue
+- success: green
+- warning: amber
+- danger: red
+- info: cyan
+
+## Typography
+- Inter or Geist
+- strong hierarchy
+- monospace for selectors/logs
+
+## Components
+Use shadcn/ui components:
+- Button
+- Badge
+- Card
+- Table
+- Tabs
+- Dialog
+- Drawer
+- Toast
+- Skeleton
+- Progress
+- Tooltip
+- Switch
+- Select
+
+---
+
+# 5. Key Interaction Patterns
+
+## Live Run Streaming
+- use SSE
+- update timeline in real time
+- show spinner/skeleton for pending steps
+- show evidence thumbnails immediately
+
+## Healing Approval Flow
+- candidate opens in drawer
+- side-by-side old/new comparison
+- confidence meter
+- approve triggers optimistic update + API call
+- toast confirms result
+
+## Visual Diff Viewer
+- slider-based before/after compare
+- bounding box overlay for changed regions
+- zoom controls
+
+---
+
+# 6. State Management
+
+## Server State
+- TanStack Query
+- cache invalidation on mutations
+
+## Client State
+- Zustand for:
+  - selected run
+  - live event buffer
+  - UI filters
+  - diff viewer state
+
+---
+
+# 7. Empty / Loading / Error States
+
+Every screen must define:
+- empty state
+- loading state
+- partial error state
+- fatal error state
+
+### Examples
+- no test cases yet → CTA to create first test
+- run failed due to environment → show retry and diagnostics
+- healing queue empty → show success state
+
+---
+
+# 8. Accessibility Requirements
+
+The QA product itself must be accessible:
+- keyboard navigation
+- focus states
+- proper labels
+- aria-live for run updates
+- color contrast compliance
+- reduced motion support
+
+---
+
+# 9. Frontend Data Model
+
+## Types
+```ts
+type RunStatus =
+  | "QUEUED"
+  | "PLANNING"
+  | "EXECUTING"
+  | "VERIFYING"
+  | "HEALING"
+  | "COMPLETED"
+  | "FAILED"
+  | "NEEDS_APPROVAL";
+
+type StepExecution = {
+  id: string;
+  stepId: string;
+  status: "PENDING" | "RUNNING" | "PASSED" | "FAILED" | "HEALED";
+  errorMessage?: string;
+  screenshotUrl?: string;
+  durationMs?: number;
+};
+
+type HealingCandidate = {
+  id: string;
+  runId: string;
+  type: "LOCATOR" | "TIMING" | "ACTION";
+  oldValue: string;
+  newValue: string;
+  confidence: number;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "AUTO_APPLIED";
+};
+
+type DesignInsight = {
+  id: string;
+  type: "VISUAL" | "ACCESSIBILITY" | "LAYOUT";
+  severity: "LOW" | "MEDIUM" | "HIGH";
+  description: string;
+  screenshotUrl?: string;
+};
